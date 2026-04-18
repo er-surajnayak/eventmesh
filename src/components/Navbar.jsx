@@ -29,7 +29,7 @@ export function Navbar({ onExplore }) {
           <a href="#how" style={{ transition: 'color 0.2s' }}>How it works</a>
           <a href="#sources" style={{ transition: 'color 0.2s' }}>Sources</a>
         </div>
-        <button onClick={onExplore} style={{
+        <button className="nav-explore-btn" onClick={onExplore} style={{
           background: 'transparent', color: 'var(--fg)',
           border: '1px solid var(--line-2)', borderRadius: 999,
           padding: '8px 16px', fontSize: 13, fontWeight: 500,

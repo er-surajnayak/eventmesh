@@ -66,6 +66,12 @@ button { font-family: inherit; cursor: pointer; }
 
 button:hover { filter: brightness(1.1); }
 
+.nav-explore-btn:hover {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
 @media (max-width: 860px) {
   .how-grid { grid-template-columns: 1fr !important; }
   .how-grid > div:nth-child(2) svg { transform: rotate(90deg); }
