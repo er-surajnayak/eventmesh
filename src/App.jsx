@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { FilterBar } from './components/FilterBar';
@@ -8,8 +8,6 @@ import { SourcesStrip } from './components/SourcesStrip';
 import { Footer } from './components/Footer';
 import { TweaksPanel } from './components/TweaksPanel';
 import { useRevealOnScroll } from './hooks/useRevealOnScroll';
-import { filterEvents } from './utils/filters';
-import { EVENTS } from './data/events';
 
 const TWEAK_DEFAULTS = {
   accent: "#FFB84D",
@@ -19,8 +17,10 @@ const TWEAK_DEFAULTS = {
 
 function App() {
   const [filters, setFilters] = useState({
-    q: '', city: 'All cities', date: 'any', price: 'all',
+    q: '', city: 'San Francisco', date: 'all', price: 'all', type: 'all'
   });
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [tweakMode, setTweakMode] = useState(false);
 
@@ -32,6 +32,30 @@ function App() {
     const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
     document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
   }, [tweaks.accent]);
+
+  // Fetch events from backend
+  useEffect(() => {
+    async function fetchEvents() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (filters.city) params.append('city', filters.city);
+        if (filters.price !== 'all') params.append('free', filters.price === 'free');
+        if (filters.type !== 'all') params.append('online', filters.type === 'online');
+        if (filters.date !== 'all') params.append('date_range', filters.date);
+        if (filters.q) params.append('search', filters.q);
+
+        const response = await fetch(`http://localhost:8000/events/?${params.toString()}`);
+        const data = await response.json();
+        setEvents(data.events || []);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEvents();
+  }, [filters]);
 
   // Activate edit mode or other protocols if needed
   useEffect(() => {
@@ -58,14 +82,12 @@ function App() {
     }
   }, []);
 
-  const resultsLength = useMemo(() => filterEvents(EVENTS, filters).length, [filters]);
-
   return (
     <>
       <Navbar onExplore={explore} />
       <Hero onExplore={explore} tweaks={tweaks} />
-      <FilterBar filters={filters} setFilters={setFilters} resultCount={resultsLength} />
-      <EventGridSection filters={filters} setFilters={setFilters} />
+      <FilterBar filters={filters} setFilters={setFilters} resultCount={events.length} />
+      <EventGridSection filters={filters} setFilters={setFilters} events={events} loading={loading} />
       <HowItWorks tweaks={tweaks} />
       <SourcesStrip tweaks={tweaks} />
       <Footer />

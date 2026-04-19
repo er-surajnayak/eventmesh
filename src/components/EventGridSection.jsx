@@ -1,20 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { filterEvents } from '../utils/filters';
-import { EVENTS } from '../data/events';
+import React, { useState, useEffect } from 'react';
 import { EventCard, SkeletonCard } from './EventCard';
 import { StaticMesh } from './StaticMesh';
 
-export function EventGridSection({ filters, setFilters }) {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 650);
-    return () => clearTimeout(t);
-  }, []);
-
-  const results = useMemo(() => filterEvents(EVENTS, filters), [filters]);
-
+export function EventGridSection({ filters, setFilters, events, loading }) {
   return (
-    <section style={{ padding: '56px 0 96px', background: 'var(--bg)' }}>
+    <section id="discover" style={{ padding: '56px 0 96px', background: 'var(--bg)' }}>
       <div className="container">
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 28, gap: 20, flexWrap: 'wrap' }}>
           <div>
@@ -34,11 +24,11 @@ export function EventGridSection({ filters, setFilters }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
-        ) : results.length === 0 ? (
+        ) : events.length === 0 ? (
           <EmptyState onReset={() => setFilters({ q: '', city: 'All cities', date: 'any', price: 'all' })} />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-            {results.map((e, i) => <EventCard key={e.id} event={e} index={i} />)}
+            {events.map((e, i) => <EventCard key={e.id} event={e} index={i} />)}
           </div>
         )}
       </div>

@@ -1,9 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from './UIPrimitives';
-import { CITIES, DATE_FILTERS, PRICE_FILTERS } from '../data/events';
+import { CITIES, DATE_FILTERS, PRICE_FILTERS, TYPE_FILTERS } from '../data/events';
 
 export function FilterBar({ filters, setFilters, resultCount }) {
   const setK = (k, v) => setFilters(f => ({ ...f, [k]: v }));
+  const [detectedCity, setDetectedCity] = useState(null);
+
+  useEffect(() => {
+    // Basic city detection based on geolocation (simulated or real)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        // In a real app, you'd reverse geocode here. 
+        // For now, we'll suggest a city if they're near one.
+        setDetectedCity('San Francisco'); // Mocking detection for now
+      });
+    }
+  }, []);
+
+  const sortedCities = [...CITIES].sort((a, b) => {
+    if (a === detectedCity) return -1;
+    if (b === detectedCity) return 1;
+    return 0;
+  });
+
   return (
     <div id="discover" style={{
       position: 'sticky', top: 64, zIndex: 30,
@@ -39,14 +58,21 @@ export function FilterBar({ filters, setFilters, resultCount }) {
         <SelectFilter
           value={filters.city}
           onChange={v => setK('city', v)}
-          options={CITIES}
+          options={sortedCities}
           icon={Icon.pin}
+          recommendation={detectedCity}
         />
 
         <SegmentedFilter
           value={filters.date}
           onChange={v => setK('date', v)}
           options={DATE_FILTERS}
+        />
+
+        <SegmentedFilter
+          value={filters.type}
+          onChange={v => setK('type', v)}
+          options={TYPE_FILTERS}
         />
 
         <SegmentedFilter
@@ -65,7 +91,7 @@ export function FilterBar({ filters, setFilters, resultCount }) {
   );
 }
 
-function SelectFilter({ value, onChange, options, icon }) {
+function SelectFilter({ value, onChange, options, icon, recommendation }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -95,13 +121,20 @@ function SelectFilter({ value, onChange, options, icon }) {
         }}>
           {options.map(opt => (
             <button key={opt} onClick={() => { onChange(opt); setOpen(false); }} style={{
-              display: 'block', width: '100%', textAlign: 'left',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', textAlign: 'left',
               padding: '8px 10px', borderRadius: 6,
               background: opt === value ? 'rgba(0,214,255,0.08)' : 'transparent',
               color: opt === value ? 'var(--accent)' : 'var(--fg)',
               border: 'none', fontSize: 13,
               transition: 'background 0.15s',
-            }}>{opt}</button>
+              cursor: 'pointer',
+            }}>
+              <span>{opt}</span>
+              {opt === recommendation && (
+                <span className="mono" style={{ fontSize: 9, color: 'var(--accent)', opacity: 0.8 }}>RECOMMENDED</span>
+              )}
+            </button>
           ))}
         </div>
       )}

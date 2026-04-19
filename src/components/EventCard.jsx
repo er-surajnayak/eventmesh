@@ -4,9 +4,13 @@ import { formatEventDate } from '../utils/formatDate';
 
 export function EventCard({ event, index = 0 }) {
   const [hover, setHover] = useState(false);
+  
+  // Ensure we have a valid URL
+  const eventUrl = event.url || '#';
+
   return (
     <a
-      href={event.url}
+      href={eventUrl}
       target="_blank"
       rel="noopener noreferrer"
       onMouseEnter={() => setHover(true)}
@@ -14,12 +18,16 @@ export function EventCard({ event, index = 0 }) {
       className="reveal"
       style={{
         display: 'block',
+        textDecoration: 'none',
+        color: 'inherit',
         position: 'relative',
+        zIndex: 5,
         background: hover ? 'var(--bg-3)' : 'var(--bg-2)',
         border: `1px solid ${hover ? 'rgba(0,214,255,0.35)' : 'var(--line)'}`,
         borderRadius: 'var(--radius)',
         padding: 0,
         overflow: 'hidden',
+        cursor: 'pointer',
         transform: hover ? 'translateY(-4px)' : 'none',
         boxShadow: hover
           ? '0 14px 40px -10px rgba(0,214,255,0.18), 0 2px 0 rgba(255,255,255,0.03) inset'
@@ -101,8 +109,10 @@ export function EventCard({ event, index = 0 }) {
             <span>{formatEventDate(event.date)}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: 'var(--fg-3)' }}>{Icon.pin}</span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.venue}</span>
+            <span style={{ color: 'var(--fg-3)' }}>{event.is_online ? Icon.clock : Icon.pin}</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {event.is_online ? '🌐 Online / Remote' : (event.venue || 'TBD')}
+            </span>
           </div>
         </div>
       </div>

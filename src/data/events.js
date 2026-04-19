@@ -169,17 +169,23 @@ export const EVENTS = [
   },
 ];
 
-export const CITIES = ['All cities', 'San Francisco', 'Bangalore', 'Brooklyn', 'New York', 'Berlin', 'London'];
+export const CITIES = ['San Francisco', 'London', 'New York', 'Bangalore', 'Berlin'];
 
 export const DATE_FILTERS = [
-  { key: 'any', label: 'Any time' },
+  { key: 'all', label: 'Anytime' },
   { key: 'today', label: 'Today' },
-  { key: 'week', label: 'This week' },
-  { key: 'month', label: 'This month' },
+  { key: 'week', label: 'This Week' },
+  { key: 'month', label: 'This Month' },
 ];
 
 export const PRICE_FILTERS = [
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'Pricing' },
   { key: 'free', label: 'Free' },
   { key: 'paid', label: 'Paid' },
+];
+
+export const TYPE_FILTERS = [
+  { key: 'all', label: 'Format' },
+  { key: 'in-person', label: 'In-person' },
+  { key: 'online', label: 'Online' },
 ];

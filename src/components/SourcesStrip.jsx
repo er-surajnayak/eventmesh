@@ -2,9 +2,10 @@ import React from 'react';
 
 export function SourcesStrip({ tweaks }) {
   const sources = [
-    { name: 'Eventbrite', count: 1248, color: '#FF8A65' },
-    { name: 'Meetup', count: 624, color: '#FF4D4D' },
-    { name: 'Luma', count: 312, color: '#C084FC' },
+    { name: 'Eventbrite', count: 1842, color: '#FF8A65' },
+    { name: 'Meetup', count: 1240, color: '#FF4D4D' },
+    { name: 'Luma', count: 856, color: '#C084FC' },
+    { name: 'Partiful', count: 420, color: '#FFD700' },
   ];
   return (
     <section id="sources" style={{ padding: '80px 0', borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }}>

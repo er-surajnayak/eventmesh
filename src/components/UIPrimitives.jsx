@@ -76,20 +76,25 @@ export function LogoMark({ size = 22, accent = 'var(--accent)' }) {
 export function PlatformBadge({ platform }) {
   const dotColor = {
     Eventbrite: '#FF8A65',
+    'Eventbrite (Scraped)': '#FF8A65',
     Meetup: '#FF4D4D',
+    'Meetup (Scraped)': '#FF4D4D',
     Luma: '#C084FC',
+    'Luma (Scraped)': '#C084FC',
+    Partiful: '#FFD700',
+    Ticketmaster: '#026cdf',
   }[platform] || '#888';
   return (
     <span className="mono" style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
-      fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+      fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
       color: 'var(--fg-2)',
       border: '1px solid var(--line)',
       padding: '4px 8px', borderRadius: 6,
       background: 'rgba(255,255,255,0.02)',
     }}>
       <span style={{ width: 6, height: 6, borderRadius: 99, background: dotColor, boxShadow: `0 0 6px ${dotColor}80` }} />
-      {platform}
+      {platform.replace(' (Scraped)', '')}
     </span>
   );
 }
