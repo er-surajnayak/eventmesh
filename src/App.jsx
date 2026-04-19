@@ -45,7 +45,9 @@ function App() {
         if (filters.date !== 'all') params.append('date_range', filters.date);
         if (filters.q) params.append('search', filters.q);
 
-        const response = await fetch(`http://localhost:8000/events/?${params.toString()}`);
+        const isProd = window.location.hostname !== 'localhost';
+        const baseUrl = isProd ? 'https://eventmesh-b.vercel.app' : 'http://localhost:8000';
+        const response = await fetch(`${baseUrl}/events/?${params.toString()}`);
         const data = await response.json();
         setEvents(data.events || []);
       } catch (error) {
