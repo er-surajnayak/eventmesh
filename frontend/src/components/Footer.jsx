@@ -11,7 +11,7 @@ export function Footer() {
           <span className="mono" style={{ fontSize: 11, color: 'var(--fg-3)', marginLeft: 10 }}>v0.4.0</span>
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--fg-3)' }}>
-          Built by <span style={{ color: 'var(--fg-2)' }}>NayakLabs</span> · © 2026
+          Built by <span style={{ color: 'var(--fg-2)' }}>Ganashree</span> · © 2026
         </div>
       </div>
     </footer>
