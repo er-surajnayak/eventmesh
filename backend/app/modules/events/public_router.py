@@ -21,8 +21,10 @@ from app.modules.events.schemas import (
     VisibleEventRead,
     VisibleListResponse,
 )
-from app.modules.events.visible_repository import VisibleEventRepository
 from app.modules.organizers.repository import OrganizationRepository
+from app.modules.search.base import DateRange, SearchQuery
+from app.modules.search.service import SearchService
+from app.modules.search.sql_backend import SqlSearchBackend
 from app.modules.users.dependencies import CurrentProfile
 
 router = APIRouter(tags=["events-public"])
@@ -49,18 +51,35 @@ async def browse_events(
     db: DbSession,
     q: Annotated[str | None, Query()] = None,
     city: Annotated[str | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
+    source: Annotated[str | None, Query()] = None,
     free: Annotated[bool | None, Query()] = None,
     online: Annotated[bool | None, Query()] = None,
+    date_range: Annotated[DateRange, Query()] = "all",
 ) -> VisibleListResponse:
-    """Public browse/search over the visible read model (native + canonical imported)."""
-    total, rows = await VisibleEventRepository(db).list(
-        limit=page.limit, offset=page.offset, q=q, city=city, is_free=free, is_online=online
+    """Public discovery over the visible read model (native + canonical imported).
+
+    Relevance-ranked full-text search when ``q`` is set, otherwise soonest-first
+    browse. All filters compose; ``source`` is a provider slug (eventmesh,
+    eventbrite, meetup, luma).
+    """
+    query = SearchQuery(
+        q=q,
+        city=city,
+        category=category,
+        source=source,
+        is_free=free,
+        is_online=online,
+        date_range=date_range,
+        limit=page.limit,
+        offset=page.offset,
     )
-    consumed = page.offset + len(rows)
+    result = await SearchService(SqlSearchBackend(db)).search(query)
+    consumed = page.offset + len(result["items"])
     return VisibleListResponse(
-        total=total,
-        items=[VisibleEventRead.model_validate(r) for r in rows],
-        next_offset=consumed if consumed < total else None,
+        total=result["total"],
+        items=[VisibleEventRead.model_validate(r) for r in result["items"]],
+        next_offset=consumed if consumed < result["total"] else None,
     )
 
 
