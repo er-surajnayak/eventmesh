@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { FilterBar } from './components/FilterBar';
@@ -8,6 +8,10 @@ import { SourcesStrip } from './components/SourcesStrip';
 import { Footer } from './components/Footer';
 import { TweaksPanel } from './components/TweaksPanel';
 import { useRevealOnScroll } from './hooks/useRevealOnScroll';
+import { useEventFeed } from './hooks/useEventFeed';
+import { useSourceStats } from './hooks/useSourceStats';
+import { toCardEvent } from './utils/adaptEvent';
+import { DEFAULT_FILTERS } from './data/events';
 
 const TWEAK_DEFAULTS = {
   accent: "#FFB84D",
@@ -16,48 +20,22 @@ const TWEAK_DEFAULTS = {
 };
 
 function App() {
-  const [filters, setFilters] = useState({
-    q: '', city: 'San Francisco', date: 'all', price: 'all', type: 'all'
-  });
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [tweakMode, setTweakMode] = useState(false);
+
+  const feed = useEventFeed(filters);
+  const stats = useSourceStats();
+  const cards = useMemo(() => feed.items.map(toCardEvent), [feed.items]);
 
   // Apply accent to CSS variables
   useEffect(() => {
     document.documentElement.style.setProperty('--accent', tweaks.accent);
-    const m = tweaks.accent.replace('#',''); 
+    const m = tweaks.accent.replace('#','');
     const n = parseInt(m, 16);
     const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
     document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
   }, [tweaks.accent]);
-
-  // Fetch events from backend
-  useEffect(() => {
-    async function fetchEvents() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (filters.city) params.append('city', filters.city);
-        if (filters.price !== 'all') params.append('free', filters.price === 'free');
-        if (filters.type !== 'all') params.append('online', filters.type === 'online');
-        if (filters.date !== 'all') params.append('date_range', filters.date);
-        if (filters.q) params.append('search', filters.q);
-
-        const isProd = window.location.hostname !== 'localhost';
-        const baseUrl = isProd ? 'https://eventmesh-b.vercel.app' : 'http://localhost:8000';
-        const response = await fetch(`${baseUrl}/events/?${params.toString()}`);
-        const data = await response.json();
-        setEvents(data.events || []);
-      } catch (error) {
-        console.error("Failed to fetch events:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvents();
-  }, [filters]);
 
   // Activate edit mode or other protocols if needed
   useEffect(() => {
@@ -87,11 +65,20 @@ function App() {
   return (
     <>
       <Navbar onExplore={explore} />
-      <Hero onExplore={explore} tweaks={tweaks} />
-      <FilterBar filters={filters} setFilters={setFilters} resultCount={events.length} />
-      <EventGridSection filters={filters} setFilters={setFilters} events={events} loading={loading} />
+      <Hero onExplore={explore} tweaks={tweaks} stats={stats} />
+      <FilterBar filters={filters} setFilters={setFilters} resultCount={feed.total} />
+      <EventGridSection
+        setFilters={setFilters}
+        events={cards}
+        status={feed.status}
+        error={feed.error}
+        hasMore={feed.hasMore}
+        loadingMore={feed.loadingMore}
+        onLoadMore={feed.loadMore}
+        onRetry={feed.reload}
+      />
       <HowItWorks tweaks={tweaks} />
-      <SourcesStrip tweaks={tweaks} />
+      <SourcesStrip tweaks={tweaks} stats={stats} />
       <Footer />
       <TweaksPanel tweaks={tweaks} setTweaks={setTweaks} visible={tweakMode} />
     </>

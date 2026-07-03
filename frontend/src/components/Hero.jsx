@@ -2,7 +2,10 @@ import React from 'react';
 import { MeshBackground } from './MeshBackground';
 import { Icon } from './UIPrimitives';
 
-export function Hero({ onExplore, tweaks }) {
+export function Hero({ onExplore, tweaks, stats }) {
+  const liveLabel = stats && !stats.loading && stats.total > 0
+    ? `Live · ${stats.sourceCount} ${stats.sourceCount === 1 ? 'source' : 'sources'} · ${stats.total.toLocaleString()} events`
+    : 'Live · aggregating events…';
   return (
     <section id="top" style={{
       position: 'relative',
@@ -43,7 +46,7 @@ export function Hero({ onExplore, tweaks }) {
           marginBottom: 28,
         }}>
           <span style={{ width: 6, height: 6, borderRadius: 99, background: tweaks.accent, boxShadow: `0 0 10px ${tweaks.accent}` }} />
-          Live · 3 sources · 2,184 events
+          {liveLabel}
         </div>
 
         <h1 style={{

@@ -1,8 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { EventCard, SkeletonCard } from './EventCard';
 import { StaticMesh } from './StaticMesh';
+import { DEFAULT_FILTERS } from '../data/events';
 
-export function EventGridSection({ filters, setFilters, events, loading }) {
+const GRID = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 };
+
+export function EventGridSection({
+  setFilters,
+  events,
+  status,
+  error,
+  hasMore,
+  loadingMore,
+  onLoadMore,
+  onRetry,
+}) {
+  const isInitialLoad = status === 'loading' && events.length === 0;
+
   return (
     <section id="discover" style={{ padding: '56px 0 96px', background: 'var(--bg)' }}>
       <div className="container">
@@ -20,16 +34,38 @@ export function EventGridSection({ filters, setFilters, events, loading }) {
           </p>
         </div>
 
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+        {isInitialLoad ? (
+          <div style={GRID}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
+        ) : status === 'error' ? (
+          <ErrorState error={error} onRetry={onRetry} />
         ) : events.length === 0 ? (
-          <EmptyState onReset={() => setFilters({ q: '', city: 'All cities', date: 'any', price: 'all' })} />
+          <EmptyState onReset={() => setFilters(DEFAULT_FILTERS)} />
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-            {events.map((e, i) => <EventCard key={e.id} event={e} index={i} />)}
-          </div>
+          <>
+            <div style={GRID}>
+              {events.map((e, i) => <EventCard key={e.key} event={e} index={i} />)}
+            </div>
+            {hasMore && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+                <button
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  style={{
+                    padding: '13px 26px', borderRadius: 999,
+                    background: 'var(--bg-2)', border: '1px solid var(--line-2)',
+                    color: 'var(--fg)', fontSize: 13.5, fontWeight: 500,
+                    cursor: loadingMore ? 'default' : 'pointer',
+                    opacity: loadingMore ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {loadingMore ? 'Loading…' : 'Load more events'}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -53,6 +89,27 @@ function EmptyState({ onReset }) {
         background: 'transparent', border: '1px solid var(--line-2)',
         color: 'var(--fg)', fontSize: 13,
       }}>Reset filters</button>
+    </div>
+  );
+}
+
+function ErrorState({ error, onRetry }) {
+  return (
+    <div style={{
+      border: '1px dashed rgba(255,77,77,0.4)', borderRadius: 16,
+      padding: '60px 24px', textAlign: 'center',
+      background: 'var(--bg-2)',
+    }}>
+      <h3 style={{ margin: 0, fontSize: 17, fontWeight: 500 }}>Couldn’t load events.</h3>
+      <p style={{ margin: '8px 0 20px', color: 'var(--fg-2)', fontSize: 13.5 }}>
+        {error?.message || 'Something went wrong reaching the server.'} The API may be waking from
+        sleep — this can take a moment on the first request.
+      </p>
+      <button onClick={onRetry} style={{
+        padding: '10px 16px', borderRadius: 999,
+        background: 'transparent', border: '1px solid var(--line-2)',
+        color: 'var(--fg)', fontSize: 13,
+      }}>Try again</button>
     </div>
   );
 }

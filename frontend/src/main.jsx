@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { AuthProvider } from './auth/AuthProvider'
 import { ProfileProvider } from './profile/ProfileProvider'
 import { OrganizerApp } from './organizer/OrganizerApp'
+import { EventDetail } from './events/EventDetail'
 import { ConfigError } from './ConfigError.jsx'
 import { isSupabaseConfigured } from './lib/supabaseClient'
 import './index.css'
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <ProfileProvider>
             <Routes>
               <Route path="/" element={<App />} />
+              <Route path="/events/:slug" element={<EventDetail />} />
               <Route path="/organizer/*" element={<OrganizerApp />} />
             </Routes>
           </ProfileProvider>

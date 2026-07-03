@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  * Fetch wrapper for the EventMesh backend. Automatically attaches the current
  * Supabase access token as a Bearer header when the user is signed in.
  */
-export async function apiFetch(path, { method = 'GET', body, headers = {}, auth = true } = {}) {
+export async function apiFetch(path, { method = 'GET', body, headers = {}, auth = true, signal } = {}) {
   const finalHeaders = { 'Content-Type': 'application/json', ...headers };
 
   if (auth) {
@@ -19,6 +19,7 @@ export async function apiFetch(path, { method = 'GET', body, headers = {}, auth 
     method,
     headers: finalHeaders,
     body: body != null ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   const isJson = (response.headers.get('content-type') || '').includes('application/json');
@@ -35,7 +36,24 @@ export async function apiFetch(path, { method = 'GET', body, headers = {}, auth 
   return payload;
 }
 
+/** Serialize a params object into a query string, dropping null/undefined/''. */
+function toQuery(params = {}) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined || value === '') continue;
+    search.append(key, value);
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
+  // Public discovery feed (visible read model: native published + canonical imported)
+  browseEvents: (params, { signal } = {}) =>
+    apiFetch(`/api/v1/events${toQuery(params)}`, { auth: false, signal }),
+  getEvent: (slug, { signal } = {}) =>
+    apiFetch(`/api/v1/events/${encodeURIComponent(slug)}`, { auth: false, signal }),
+
   // Profile
   getMe: () => apiFetch('/api/v1/users/me'),
   updateMe: (payload) => apiFetch('/api/v1/users/me', { method: 'PATCH', body: payload }),

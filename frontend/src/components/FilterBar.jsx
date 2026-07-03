@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from './UIPrimitives';
 import { CITIES, DATE_FILTERS, PRICE_FILTERS, TYPE_FILTERS } from '../data/events';
+import { SOURCE_OPTIONS } from '../utils/adaptEvent';
+
+const SourceIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
 
 export function FilterBar({ filters, setFilters, resultCount }) {
   const setK = (k, v) => setFilters(f => ({ ...f, [k]: v }));
@@ -61,6 +68,13 @@ export function FilterBar({ filters, setFilters, resultCount }) {
           options={sortedCities}
           icon={Icon.pin}
           recommendation={detectedCity}
+        />
+
+        <SelectFilter
+          value={filters.source}
+          onChange={v => setK('source', v)}
+          options={SOURCE_OPTIONS}
+          icon={SourceIcon}
         />
 
         <SegmentedFilter

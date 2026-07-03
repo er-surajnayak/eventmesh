@@ -75,6 +75,7 @@ export function LogoMark({ size = 22, accent = 'var(--accent)' }) {
 
 export function PlatformBadge({ platform }) {
   const dotColor = {
+    EventMesh: '#00D6FF',
     Eventbrite: '#FF8A65',
     'Eventbrite (Scraped)': '#FF8A65',
     Meetup: '#FF4D4D',

@@ -1,41 +1,56 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Icon, PlatformBadge, PriceTag } from './UIPrimitives';
 import { formatEventDate } from '../utils/formatDate';
 
 export function EventCard({ event, index = 0 }) {
   const [hover, setHover] = useState(false);
-  
-  // Ensure we have a valid URL
-  const eventUrl = event.url || '#';
 
+  const cardStyle = {
+    display: 'block',
+    textDecoration: 'none',
+    color: 'inherit',
+    position: 'relative',
+    zIndex: 5,
+    background: hover ? 'var(--bg-3)' : 'var(--bg-2)',
+    border: `1px solid ${hover ? 'rgba(0,214,255,0.35)' : 'var(--line)'}`,
+    borderRadius: 'var(--radius)',
+    padding: 0,
+    overflow: 'hidden',
+    cursor: event.href ? 'pointer' : 'default',
+    transform: hover ? 'translateY(-4px)' : 'none',
+    boxShadow: hover
+      ? '0 14px 40px -10px rgba(0,214,255,0.18), 0 2px 0 rgba(255,255,255,0.03) inset'
+      : '0 1px 0 rgba(255,255,255,0.02) inset',
+    transition: 'all 0.35s cubic-bezier(.2,.8,.2,1)',
+    transitionDelay: `${Math.min(index * 30, 240)}ms`,
+  };
+
+  const hoverProps = {
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    className: 'reveal',
+    style: cardStyle,
+  };
+
+  // Imported events deep-link out to the source; native events go to their
+  // EventMesh page; a card with no destination renders as plain (defensive).
+  const inner = <CardInner event={event} hover={hover} />;
+  if (!event.href) return <div {...hoverProps}>{inner}</div>;
+  if (event.external) {
+    return (
+      <a {...hoverProps} href={event.href} target="_blank" rel="noopener noreferrer">
+        {inner}
+      </a>
+    );
+  }
+  return <Link {...hoverProps} to={event.href}>{inner}</Link>;
+}
+
+function CardInner({ event, hover }) {
+  const actionIcon = event.external ? Icon.external : Icon.arrow;
   return (
-    <a
-      href={eventUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="reveal"
-      style={{
-        display: 'block',
-        textDecoration: 'none',
-        color: 'inherit',
-        position: 'relative',
-        zIndex: 5,
-        background: hover ? 'var(--bg-3)' : 'var(--bg-2)',
-        border: `1px solid ${hover ? 'rgba(0,214,255,0.35)' : 'var(--line)'}`,
-        borderRadius: 'var(--radius)',
-        padding: 0,
-        overflow: 'hidden',
-        cursor: 'pointer',
-        transform: hover ? 'translateY(-4px)' : 'none',
-        boxShadow: hover
-          ? '0 14px 40px -10px rgba(0,214,255,0.18), 0 2px 0 rgba(255,255,255,0.03) inset'
-          : '0 1px 0 rgba(255,255,255,0.02) inset',
-        transition: 'all 0.35s cubic-bezier(.2,.8,.2,1)',
-        transitionDelay: `${Math.min(index * 30, 240)}ms`,
-      }}
-    >
+    <>
       <div style={{
         position: 'relative',
         height: 140,
@@ -57,21 +72,25 @@ export function EventCard({ event, index = 0 }) {
           </g>
           <circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.7)" />
         </svg>
-        <div className="mono" style={{
-          position: 'absolute', top: 12, left: 14,
-          fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.85)',
-        }}>
-          {event.category}
-        </div>
-        <div className="mono" style={{
-          position: 'absolute', top: 12, right: 14,
-          display: 'flex', alignItems: 'center', gap: 5,
-          fontSize: 10.5, color: 'rgba(255,255,255,0.72)',
-        }}>
-          {Icon.users}
-          <span>{event.attendees}</span>
-        </div>
+        {event.category && (
+          <div className="mono" style={{
+            position: 'absolute', top: 12, left: 14,
+            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.85)',
+          }}>
+            {event.category}
+          </div>
+        )}
+        {event.attendees != null && (
+          <div className="mono" style={{
+            position: 'absolute', top: 12, right: 14,
+            display: 'flex', alignItems: 'center', gap: 5,
+            fontSize: 10.5, color: 'rgba(255,255,255,0.72)',
+          }}>
+            {Icon.users}
+            <span>{event.attendees}</span>
+          </div>
+        )}
         <div style={{
           position: 'absolute', bottom: 12, right: 14,
           width: 30, height: 30, borderRadius: 8,
@@ -81,7 +100,7 @@ export function EventCard({ event, index = 0 }) {
           color: hover ? '#000' : 'var(--fg)',
           transition: 'all 0.3s',
         }}>
-          {Icon.external}
+          {actionIcon}
         </div>
       </div>
 
@@ -89,16 +108,23 @@ export function EventCard({ event, index = 0 }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           <PlatformBadge platform={event.platform} />
           <PriceTag price={event.price} />
+          {event.alsoOn?.length > 0 && (
+            <span className="mono" style={{ fontSize: 10, color: 'var(--fg-3)', letterSpacing: '0.04em' }}>
+              also on {event.alsoOn.join(', ')}
+            </span>
+          )}
         </div>
         <h3 style={{
           margin: 0, fontSize: 17, fontWeight: 600, lineHeight: 1.3,
           letterSpacing: '-0.012em', color: 'var(--fg)',
           textWrap: 'balance',
         }}>{event.title}</h3>
-        <p style={{
-          margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)',
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-        }}>{event.blurb}</p>
+        {event.blurb && (
+          <p style={{
+            margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>{event.blurb}</p>
+        )}
         <div style={{
           marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--line)',
           display: 'flex', flexDirection: 'column', gap: 7,
@@ -116,7 +142,7 @@ export function EventCard({ event, index = 0 }) {
           </div>
         </div>
       </div>
-    </a>
+    </>
   );
 }
 
