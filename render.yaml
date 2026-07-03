@@ -9,7 +9,7 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     plan: free
-    region: oregon
+    region: singapore  # closest Render free region to the Supabase DB (Mumbai)
     branch: main
     healthCheckPath: /health
     autoDeploy: true
