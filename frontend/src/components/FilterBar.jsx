@@ -33,7 +33,7 @@ export function FilterBar({ filters, setFilters, resultCount }) {
   return (
     <div id="discover" style={{
       position: 'sticky', top: 64, zIndex: 30,
-      background: 'rgba(5,5,5,0.82)',
+      background: 'var(--glass-2)',
       backdropFilter: 'blur(14px) saturate(1.2)',
       WebkitBackdropFilter: 'blur(14px) saturate(1.2)',
       borderBottom: '1px solid var(--line)',

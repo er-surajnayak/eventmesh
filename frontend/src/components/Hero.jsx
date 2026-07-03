@@ -25,7 +25,7 @@ export function Hero({ onExplore, tweaks, stats }) {
       </div>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse at center, transparent 0%, rgba(5,5,5,0.4) 70%, var(--bg) 100%)',
+        background: 'radial-gradient(ellipse at center, transparent 0%, var(--hero-fade) 70%, var(--bg) 100%)',
         pointerEvents: 'none',
       }} />
       <div style={{
@@ -39,7 +39,7 @@ export function Hero({ onExplore, tweaks, stats }) {
           display: 'inline-flex', alignItems: 'center', gap: 10,
           padding: '6px 12px', borderRadius: 999,
           border: '1px solid var(--line-2)',
-          background: 'rgba(10,10,12,0.5)',
+          background: 'var(--chip)',
           backdropFilter: 'blur(8px)',
           fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
           color: 'var(--fg-2)',
@@ -85,7 +85,7 @@ export function Hero({ onExplore, tweaks, stats }) {
           <a href="#how" style={{
             padding: '14px 18px', fontSize: 14, color: 'var(--fg-2)',
             border: '1px solid var(--line-2)', borderRadius: 999,
-            background: 'rgba(10,10,12,0.4)', backdropFilter: 'blur(8px)',
+            background: 'var(--chip)', backdropFilter: 'blur(8px)',
             transition: 'all 0.2s',
           }}>
             How it works
@@ -101,7 +101,7 @@ export function Hero({ onExplore, tweaks, stats }) {
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '7px 14px', borderRadius: 8,
               border: '1px solid var(--line)',
-              background: 'rgba(10,10,12,0.5)', backdropFilter: 'blur(8px)',
+              background: 'var(--chip)', backdropFilter: 'blur(8px)',
               fontSize: 13, color: 'var(--fg-2)',
             }}>
               <span style={{ width: 6, height: 6, borderRadius: 99, background: {Eventbrite:'#FF8A65',Meetup:'#FF4D4D',Luma:'#C084FC'}[p] }} />

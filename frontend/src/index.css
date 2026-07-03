@@ -1,4 +1,4 @@
-:root {
+:root, :root[data-theme="dark"] {
   --bg: #050505;
   --bg-2: #0A0A0C;
   --bg-3: #111114;
@@ -12,18 +12,45 @@
   --accent-glow: rgba(0,214,255,0.35);
   --radius: 14px;
   --radius-sm: 10px;
+  /* Translucent "glass" surfaces (sticky nav/filter bars, hero chips) and the
+     hero vignette — themed so light mode reads as intentional, not inverted. */
+  --glass: rgba(5,5,5,0.72);
+  --glass-2: rgba(5,5,5,0.82);
+  --chip: rgba(10,10,12,0.5);
+  --hero-fade: rgba(5,5,5,0.4);
+  --scrollbar-thumb: #1a1a1e;
+  --scrollbar-thumb-hover: #26262c;
+}
+
+:root[data-theme="light"] {
+  --bg: #F6F7F9;
+  --bg-2: #FFFFFF;
+  --bg-3: #F0F1F4;
+  --line: rgba(0,0,0,0.10);
+  --line-2: rgba(0,0,0,0.16);
+  --fg: rgba(15,17,21,0.94);
+  --fg-2: rgba(15,17,21,0.62);
+  --fg-3: rgba(15,17,21,0.42);
+  --accent-glow: rgba(0,160,190,0.28);
+  --glass: rgba(255,255,255,0.72);
+  --glass-2: rgba(255,255,255,0.85);
+  --chip: rgba(255,255,255,0.72);
+  --hero-fade: rgba(246,247,249,0.5);
+  --scrollbar-thumb: #cfd2d8;
+  --scrollbar-thumb-hover: #b8bcc4;
 }
 
 * { box-sizing: border-box; }
 
-html, body { 
-  margin: 0; 
-  padding: 0; 
-  background: var(--bg); 
-  color: var(--fg); 
-  font-family: 'Inter', system-ui, sans-serif; 
-  font-feature-settings: "ss01","cv11"; 
-  -webkit-font-smoothing: antialiased; 
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-feature-settings: "ss01","cv11";
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 body { overflow-x: hidden; }
@@ -39,8 +66,8 @@ button { font-family: inherit; cursor: pointer; }
 /* Scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #1a1a1e; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #26262c; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 /* Utility */
 .container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }

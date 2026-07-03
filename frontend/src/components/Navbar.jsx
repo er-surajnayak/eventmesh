@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogoMark } from './UIPrimitives';
+import { ThemeToggle } from './ThemeToggle';
 import { AuthControl } from '../auth/AuthControl';
 
 export function Navbar({ onExplore }) {
@@ -15,7 +16,7 @@ export function Navbar({ onExplore }) {
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
       backdropFilter: scrolled ? 'blur(14px) saturate(1.2)' : 'none',
       WebkitBackdropFilter: scrolled ? 'blur(14px) saturate(1.2)' : 'none',
-      background: scrolled ? 'rgba(5,5,5,0.72)' : 'transparent',
+      background: scrolled ? 'var(--glass)' : 'transparent',
       borderBottom: scrolled ? '1px solid var(--line)' : '1px solid transparent',
       transition: 'background 0.3s, border-color 0.3s',
     }}>
@@ -38,6 +39,7 @@ export function Navbar({ onExplore }) {
         }}>
           Explore events →
         </button>
+        <ThemeToggle />
         <AuthControl />
       </div>
     </nav>
