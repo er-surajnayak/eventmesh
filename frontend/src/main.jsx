@@ -5,19 +5,25 @@ import App from './App.jsx'
 import { AuthProvider } from './auth/AuthProvider'
 import { ProfileProvider } from './profile/ProfileProvider'
 import { OrganizerApp } from './organizer/OrganizerApp'
+import { ConfigError } from './ConfigError.jsx'
+import { isSupabaseConfigured } from './lib/supabaseClient'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ProfileProvider>
-          <Routes>
-            <Route path="/" element={<App />} />
-            <Route path="/organizer/*" element={<OrganizerApp />} />
-          </Routes>
-        </ProfileProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    {isSupabaseConfigured ? (
+      <BrowserRouter>
+        <AuthProvider>
+          <ProfileProvider>
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path="/organizer/*" element={<OrganizerApp />} />
+            </Routes>
+          </ProfileProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    ) : (
+      <ConfigError />
+    )}
   </React.StrictMode>,
 )
