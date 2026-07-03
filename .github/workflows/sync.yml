@@ -1,0 +1,33 @@
+name: Provider Sync
+
+# Aggregation is driven here (NOT by an in-process scheduler). Every 6 hours we
+# POST to the backend's admin sync endpoint. Manual runs via workflow_dispatch.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: provider-sync
+  cancel-in-progress: false
+
+jobs:
+  trigger-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger backend synchronization
+        env:
+          API_URL: ${{ secrets.EVENTMESH_API_URL }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_SYNC_TOKEN }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
+            echo "::warning::EVENTMESH_API_URL / ADMIN_SYNC_TOKEN not set yet — skipping."
+            echo "Configure these repo secrets after the backend is deployed (Phase 4/6)."
+            exit 0
+          fi
+          curl --fail --show-error --silent \
+            --request POST "${API_URL%/}/api/v1/admin/sync" \
+            --header "X-Admin-Token: ${ADMIN_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --max-time 600 \
+            --write-out "\nHTTP %{http_code}\n"

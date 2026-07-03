@@ -1,4 +1,4 @@
-# Logs
+# ─── Logs ───────────────────────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -7,12 +7,45 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# ─── Node / Frontend ────────────────────────────────────
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# ─── Python / Backend ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+develop-eggs/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# ─── Secrets & local state ──────────────────────────────
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Supabase local ─────────────────────────────────────
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# ─── Editor / OS ────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
 .idea

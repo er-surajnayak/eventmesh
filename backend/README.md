@@ -1,34 +1,58 @@
 # EventMesh Backend
 
-Scaleable, production-ready backend for the EventMesh aggregation platform.
+Production-grade backend for **EventMesh** — an Event Aggregation **+** Hosting
+platform (NayakLabs). Built as a domain-driven modular monolith. See
+[`../ARCHITECTURE_V2.md`](../ARCHITECTURE_V2.md) for the full design (source of truth).
 
 ## Tech Stack
-- **Framework**: FastAPI
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy (Async)
-- **Scheduler**: APScheduler
-- **Containerization**: Docker & Docker Compose
+- **Framework**: FastAPI (Python 3.12)
+- **ORM / Migrations**: SQLAlchemy 2 (async) + Alembic
+- **Validation**: Pydantic v2
+- **Database**: Supabase PostgreSQL (asyncpg)
+- **Auth**: Supabase Auth — FastAPI validates JWTs only (JWKS, HS256 fallback)
+- **Scheduler**: GitHub Actions → `POST /api/v1/admin/sync` every 6h (no in-process scheduler)
+- **Packaging / Container**: uv + Docker; hosted on Render
 
-## Features
-- **Event Aggregation**: Fetches events from Eventbrite and Meetup (stub).
-- **Auto-Sync**: Background jobs fetch new events every 30 minutes.
-- **Cleanup**: Removes events older than 30 days daily.
-- **REST API**: Clean endpoints for frontend integration with filtering, search, and pagination.
-- **Deduplication**: Uses URL uniqueness to prevent duplicate events.
+## Project Layout (domain-driven)
+```
+app/
+├── core/            # config, database, logging, security (JWT), exceptions, pagination
+├── api/v1/          # router aggregation + shared deps
+├── db/              # declarative base + Alembic migrations
+├── shared/          # cross-cutting schemas
+└── modules/         # one folder per domain (router/service/repository/schemas/models)
+    ├── users/           # profiles + roles                (Phase 1–2)
+    ├── organizers/      # organizations, membership       (Phase 2)
+    ├── events/          # native / imported / visible      (Phase 3)
+    ├── providers/       # pluggable sources (one interface) (Phase 4)
+    ├── sync/            # sync orchestration               (Phase 4)
+    ├── search/          # abstract SearchService           (Phase 5)
+    └── notifications/   # scaffold only (no delivery in MVP)
+```
 
-## Setup
+## Local Development
+```bash
+cd backend
+cp .env.example .env                 # fill in values
+uv sync --dev                        # create .venv + install (lockfile-pinned)
+uv run uvicorn app.main:app --reload # http://localhost:8000  (/health, /docs)
+uv run pytest -q                     # tests
+uv run ruff check . && uv run ruff format .
+```
 
-### Using Docker (Recommended)
-1. Copy `.env.example` to `.env`.
-2. Run `docker-compose up --build`.
+### With Docker (bundled Postgres for local only)
+```bash
+docker compose up --build            # api on :8000, postgres on :5432
+```
 
-### Manual Setup
-1. Create a virtual environment: `python -m venv venv`
-2. Activate it: `source venv/bin/activate` or `venv\Scripts\activate`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Set up your PostgreSQL database and update `DATABASE_URL` in `.env`.
-5. Run the app: `uvicorn app.main:app --reload`
+### Migrations (Alembic)
+```bash
+uv run alembic revision --autogenerate -m "message"
+uv run alembic upgrade head
+```
 
-## API Endpoints
-- `GET /events`: Fetch events with filters (`city`, `free`, `date_range`, `search`).
-- `GET /health`: System health check.
+## Endpoints (current)
+- `GET /health` — liveness/readiness (used by Render health check)
+- `GET /api/v1/users/me` — caller profile (requires Supabase JWT)
+
+More endpoints land per phase; see `ARCHITECTURE_V2.md` §9.
