@@ -20,6 +20,22 @@ class OrgRole(enum.StrEnum):
     # Future (architecture-ready, not yet exposed): admin, editor, viewer
 
 
+class OrgStatus(enum.StrEnum):
+    pending = "pending"
+    verified = "verified"
+    rejected = "rejected"
+    suspended = "suspended"
+
+
+class OrgType(enum.StrEnum):
+    community = "community"
+    company = "company"
+    university = "university"
+    ngo = "ngo"
+    club = "club"
+    other = "other"
+
+
 class Organization(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "organizations"
 
@@ -31,6 +47,12 @@ class Organization(Base, UUIDMixin, TimestampMixin):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     website: Mapped[str | None] = mapped_column(String(512), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    # MVP auto-verifies; the field exists for future moderation.
+    status: Mapped[OrgStatus] = mapped_column(
+        Enum(OrgStatus, name="org_status"), nullable=False, default=OrgStatus.verified
+    )
+    # Optional; future-proofs filtering & discovery.
+    type: Mapped[OrgType | None] = mapped_column(Enum(OrgType, name="org_type"), nullable=True)
 
 
 class OrganizationMember(Base, TimestampMixin):

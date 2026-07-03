@@ -4,7 +4,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.modules.organizers.models import OrgRole
+from app.modules.organizers.models import OrgRole, OrgStatus, OrgType
 
 
 class OrganizationCreate(BaseModel):
@@ -12,6 +12,7 @@ class OrganizationCreate(BaseModel):
     slug: str | None = Field(default=None, max_length=80)
     description: str | None = None
     website: str | None = None
+    type: OrgType | None = None
 
 
 class OrganizationRead(BaseModel):
@@ -24,6 +25,8 @@ class OrganizationRead(BaseModel):
     website: str | None = None
     avatar_url: str | None = None
     owner_id: str
+    status: OrgStatus
+    type: OrgType | None = None
     # The requesting user's role in this org, when known (None for public reads).
     role: OrgRole | None = None
 

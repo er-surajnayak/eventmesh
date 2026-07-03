@@ -37,6 +37,7 @@ class OrganizationService:
             name=data.name,
             description=data.description,
             website=data.website,
+            type=data.type,
         )
         try:
             await self._repo.add(org)
