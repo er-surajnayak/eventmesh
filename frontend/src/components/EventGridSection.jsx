@@ -2,6 +2,7 @@ import React from 'react';
 import { EventCard, SkeletonCard } from './EventCard';
 import { StaticMesh } from './StaticMesh';
 import { DEFAULT_FILTERS } from '../data/events';
+import { track, EVENTS } from '../lib/analytics';
 
 const GRID = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 };
 
@@ -50,8 +51,9 @@ export function EventGridSection({
             {hasMore && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
                 <button
-                  onClick={onLoadMore}
+                  onClick={() => { track(EVENTS.LOAD_MORE, { loaded: events.length }); onLoadMore(); }}
                   disabled={loadingMore}
+                  aria-busy={loadingMore}
                   style={{
                     padding: '13px 26px', borderRadius: 999,
                     background: 'var(--bg-2)', border: '1px solid var(--line-2)',

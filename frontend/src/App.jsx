@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { FilterBar } from './components/FilterBar';
@@ -10,8 +10,11 @@ import { TweaksPanel } from './components/TweaksPanel';
 import { useRevealOnScroll } from './hooks/useRevealOnScroll';
 import { useEventFeed } from './hooks/useEventFeed';
 import { useSourceStats } from './hooks/useSourceStats';
+import { useUrlSyncedFilters } from './hooks/useUrlSyncedFilters';
 import { toCardEvent } from './utils/adaptEvent';
 import { DEFAULT_FILTERS } from './data/events';
+import { useDocumentHead, buildEventListJsonLd, canonicalUrl } from './lib/seo';
+import { track, EVENTS } from './lib/analytics';
 
 const TWEAK_DEFAULTS = {
   accent: "#FFB84D",
@@ -19,14 +22,31 @@ const TWEAK_DEFAULTS = {
   meshDensity: 1.1
 };
 
+function discoveryHead(filters, items) {
+  const parts = [];
+  if (filters.q) parts.push(`“${filters.q}”`);
+  if (filters.city && filters.city !== 'All cities') parts.push(`in ${filters.city}`);
+  const title = parts.length
+    ? `${parts.join(' ')} events · EventMesh`
+    : 'EventMesh — Discover events from Eventbrite, Meetup & Luma';
+  const description = parts.length
+    ? `Discover ${parts.join(' ')} events aggregated from Eventbrite, Meetup, and Luma on EventMesh.`
+    : 'EventMesh aggregates events from Eventbrite, Meetup, and Luma into one unified discovery feed — search, filter, and jump straight to the source.';
+  const jsonLd = items.length ? buildEventListJsonLd(items, canonicalUrl('')) : null;
+  return { title, description, canonical: canonicalUrl('/'), jsonLd };
+}
+
 function App() {
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filters, setFilters] = useUrlSyncedFilters(DEFAULT_FILTERS);
   const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
   const [tweakMode, setTweakMode] = useState(false);
 
   const feed = useEventFeed(filters);
   const stats = useSourceStats();
   const cards = useMemo(() => feed.items.map(toCardEvent), [feed.items]);
+
+  const head = discoveryHead(filters, feed.items);
+  useDocumentHead(head);
 
   // Apply accent to CSS variables
   useEffect(() => {
@@ -36,6 +56,18 @@ function App() {
     const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
     document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
   }, [tweaks.accent]);
+
+  useEffect(() => {
+    track(EVENTS.PAGE_VIEW, { path: '/' });
+  }, []);
+
+  // Report search/filter intent (non-PII: filter values only).
+  const filterKey = JSON.stringify(filters);
+  useEffect(() => {
+    if (filters.q) track(EVENTS.SEARCH, { q: filters.q, city: filters.city, source: filters.source });
+    else track(EVENTS.FILTER_CHANGE, { ...filters });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
 
   // Activate edit mode or other protocols if needed
   useEffect(() => {
@@ -64,19 +96,22 @@ function App() {
 
   return (
     <>
+      <a href="#discover" className="skip-link">Skip to events</a>
       <Navbar onExplore={explore} />
       <Hero onExplore={explore} tweaks={tweaks} stats={stats} />
-      <FilterBar filters={filters} setFilters={setFilters} resultCount={feed.total} />
-      <EventGridSection
-        setFilters={setFilters}
-        events={cards}
-        status={feed.status}
-        error={feed.error}
-        hasMore={feed.hasMore}
-        loadingMore={feed.loadingMore}
-        onLoadMore={feed.loadMore}
-        onRetry={feed.reload}
-      />
+      <main>
+        <FilterBar filters={filters} setFilters={setFilters} resultCount={feed.total} />
+        <EventGridSection
+          setFilters={setFilters}
+          events={cards}
+          status={feed.status}
+          error={feed.error}
+          hasMore={feed.hasMore}
+          loadingMore={feed.loadingMore}
+          onLoadMore={feed.loadMore}
+          onRetry={feed.reload}
+        />
+      </main>
       <HowItWorks tweaks={tweaks} />
       <SourcesStrip tweaks={tweaks} stats={stats} />
       <Footer />

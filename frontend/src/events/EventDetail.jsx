@@ -5,6 +5,25 @@ import { Footer } from '../components/Footer';
 import { Icon, PlatformBadge, PriceTag } from '../components/UIPrimitives';
 import { api } from '../lib/apiClient';
 import { priceLabel, hueFromId } from '../utils/adaptEvent';
+import { useDocumentHead, buildEventJsonLd, canonicalUrl } from '../lib/seo';
+import { track, EVENTS } from '../lib/analytics';
+
+function detailHead(slug, status, event) {
+  const canonical = canonicalUrl(`/events/${slug}`);
+  if (status === 'ready' && event) {
+    const desc = (event.description || `${event.title} — hosted on EventMesh.`).slice(0, 200);
+    return {
+      title: `${event.title} · EventMesh`,
+      description: desc,
+      canonical,
+      image: event.cover_image_url || undefined,
+      type: 'article',
+      jsonLd: buildEventJsonLd(event, canonical),
+    };
+  }
+  if (status === 'notfound') return { title: 'Event not found · EventMesh', description: 'This event could not be found.', canonical };
+  return { title: 'Event · EventMesh', description: 'An event hosted on EventMesh.', canonical };
+}
 
 function formatRange(start, end) {
   if (!start) return 'Date to be announced';
@@ -35,10 +54,18 @@ export function EventDetail() {
     let cancelled = false;
     setStatus('loading');
     api.getEvent(slug)
-      .then((data) => { if (!cancelled) { setEvent(data); setStatus('ready'); } })
+      .then((data) => {
+        if (!cancelled) {
+          setEvent(data);
+          setStatus('ready');
+          track(EVENTS.PAGE_VIEW, { path: '/events/:slug', kind: 'native' });
+        }
+      })
       .catch((err) => { if (!cancelled) setStatus(err.status === 404 ? 'notfound' : 'error'); });
     return () => { cancelled = true; };
   }, [slug]);
+
+  useDocumentHead(detailHead(slug, status, event));
 
   const isOnline = event?.event_type === 'online';
   const location = isOnline

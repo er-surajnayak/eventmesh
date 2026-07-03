@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, PlatformBadge, PriceTag } from './UIPrimitives';
 import { formatEventDate } from '../utils/formatDate';
+import { track, EVENTS } from '../lib/analytics';
 
 export function EventCard({ event, index = 0 }) {
   const [hover, setHover] = useState(false);
@@ -29,6 +30,7 @@ export function EventCard({ event, index = 0 }) {
   const hoverProps = {
     onMouseEnter: () => setHover(true),
     onMouseLeave: () => setHover(false),
+    onClick: () => track(EVENTS.EVENT_CLICK, { kind: event.kind, provider: event.platform, external: event.external }),
     className: 'reveal',
     style: cardStyle,
   };

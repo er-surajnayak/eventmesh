@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { track, EVENTS } from '../lib/analytics';
 
 const STORAGE_KEY = 'eventmesh-theme';
 
@@ -37,7 +38,12 @@ export function ThemeToggle() {
     } catch { /* storage unavailable — the choice just won't persist */ }
   }, [theme]);
 
-  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  const toggle = () =>
+    setTheme((t) => {
+      const next = t === 'dark' ? 'light' : 'dark';
+      track(EVENTS.THEME_TOGGLE, { theme: next });
+      return next;
+    });
   const isDark = theme === 'dark';
 
   return (
