@@ -44,6 +44,7 @@ class Settings(BaseSettings):
 
     # Providers
     eventbrite_api_key: str | None = None
+    eventbrite_api_base: str = "https://www.eventbriteapi.com/v3"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

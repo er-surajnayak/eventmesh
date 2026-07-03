@@ -15,12 +15,14 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging, get_logger
+from app.modules.providers.bootstrap import register_all
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
     logger = get_logger("app")
+    register_all()
     logger.info("startup", environment=settings.environment, version=settings.version)
     yield
     logger.info("shutdown")
