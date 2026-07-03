@@ -62,20 +62,25 @@ class SyncOrchestrator:
         slug = provider.meta.slug
         t0 = time.monotonic()
         try:
-            result = await asyncio.wait_for(
-                provider.sync(ctx), timeout=_PROVIDER_TIMEOUT_SECONDS
-            )
+            result = await asyncio.wait_for(provider.sync(ctx), timeout=_PROVIDER_TIMEOUT_SECONDS)
             stored, duplicates = await self._store(slug, result.events)
             return ProviderHealth(
-                provider=slug, ok=True, fetched=result.fetched, valid=len(result.events),
-                stored=stored, duplicates=duplicates, errors=result.errors,
+                provider=slug,
+                ok=True,
+                fetched=result.fetched,
+                valid=len(result.events),
+                stored=stored,
+                duplicates=duplicates,
+                errors=result.errors,
                 duration_ms=int((time.monotonic() - t0) * 1000),
             )
         except Exception as exc:  # noqa: BLE001 - isolate a failing provider
             await self._imported.rollback()
             logger.warning("provider_sync_failed", provider=slug, error=str(exc))
             return ProviderHealth(
-                provider=slug, ok=False, errors=[str(exc)],
+                provider=slug,
+                ok=False,
+                errors=[str(exc)],
                 duration_ms=int((time.monotonic() - t0) * 1000),
             )
 

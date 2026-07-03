@@ -20,14 +20,20 @@ jobs:
           API_URL: ${{ secrets.EVENTMESH_API_URL }}
           ADMIN_TOKEN: ${{ secrets.ADMIN_SYNC_TOKEN }}
         run: |
-          if [ -z "$API_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
+          set -euo pipefail
+          if [ -z "${API_URL}" ] || [ -z "${ADMIN_TOKEN}" ]; then
             echo "::warning::EVENTMESH_API_URL / ADMIN_SYNC_TOKEN not set yet — skipping."
-            echo "Configure these repo secrets after the backend is deployed (Phase 4/6)."
             exit 0
           fi
-          curl --fail --show-error --silent \
-            --request POST "${API_URL%/}/api/v1/admin/sync" \
-            --header "X-Admin-Token: ${ADMIN_TOKEN}" \
-            --header "Content-Type: application/json" \
-            --max-time 600 \
-            --write-out "\nHTTP %{http_code}\n"
+          url="${API_URL%/}/api/v1/admin/sync"
+          code=$(curl -sS -o response.json -w '%{http_code}' --max-time 600 \
+            -X POST "${url}" \
+            -H "X-Admin-Token: ${ADMIN_TOKEN}" \
+            -H "Content-Type: application/json")
+          echo "HTTP ${code}"
+          cat response.json || true
+          echo
+          if [ "${code}" != "200" ]; then
+            echo "::error::Sync failed with HTTP ${code}"
+            exit 1
+          fi
