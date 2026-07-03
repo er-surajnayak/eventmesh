@@ -111,3 +111,36 @@ class EventListResponse(BaseModel):
     total: int
     items: list[EventRead]
     next_offset: int | None = None
+
+
+class VisibleEventRead(BaseModel):
+    """A row of the visible read model (native or canonical-imported)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    kind: str  # native | imported
+    id: uuid.UUID
+    slug: str | None
+    title: str
+    description: str | None
+    image_url: str | None
+    start_time: datetime
+    end_time: datetime | None
+    timezone: str | None
+    city: str | None
+    venue: str | None
+    is_online: bool
+    is_free: bool
+    price_cents: int | None
+    currency: str | None
+    category: str | None
+    url: str | None  # imported: source URL (click-through); native: None
+    provider: str  # 'eventmesh' or a source slug
+    sources: list[str]  # provenance: every provider in the canonical group
+    organization_id: uuid.UUID | None
+
+
+class VisibleListResponse(BaseModel):
+    total: int
+    items: list[VisibleEventRead]
+    next_offset: int | None = None

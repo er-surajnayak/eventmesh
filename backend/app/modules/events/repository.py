@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.events.models import EventStatus, EventVisibility, NativeEvent
+from app.modules.events.models import NativeEvent
 
 
 class EventRepository:
@@ -38,20 +38,6 @@ class EventRepository:
             .order_by(NativeEvent.created_at.desc())
         )
         return list(result.scalars().all())
-
-    async def list_public(self, *, limit: int, offset: int) -> tuple[int, list[NativeEvent]]:
-        """Published + public events, newest-first, paginated."""
-        base = select(NativeEvent).where(
-            NativeEvent.status == EventStatus.published,
-            NativeEvent.visibility == EventVisibility.public,
-        )
-        total = (
-            await self._db.execute(select(func.count()).select_from(base.subquery()))
-        ).scalar() or 0
-        result = await self._db.execute(
-            base.order_by(NativeEvent.start_time.asc().nulls_last()).limit(limit).offset(offset)
-        )
-        return total, list(result.scalars().all())
 
     async def delete(self, event: NativeEvent) -> None:
         await self._db.delete(event)

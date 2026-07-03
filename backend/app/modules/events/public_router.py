@@ -5,16 +5,23 @@ Visibility rules for public reads: only ``published`` events are visible, and
 slug but excluded from listings).
 """
 
-from fastapi import APIRouter, status
+from typing import Annotated
+
+from fastapi import APIRouter, Query, status
 
 from app.api.v1.deps import DbSession, Pagination
 from app.core.exceptions import ForbiddenError, NotFoundError
-from app.core.pagination import Page
 from app.modules.events.models import EventStatus, EventVisibility, NativeEvent
 from app.modules.events.registration import RegistrationService
 from app.modules.events.registration_repository import RegistrationRepository
 from app.modules.events.repository import EventRepository
-from app.modules.events.schemas import EventListResponse, EventRead, RegistrationRead
+from app.modules.events.schemas import (
+    EventRead,
+    RegistrationRead,
+    VisibleEventRead,
+    VisibleListResponse,
+)
+from app.modules.events.visible_repository import VisibleEventRepository
 from app.modules.organizers.repository import OrganizationRepository
 from app.modules.users.dependencies import CurrentProfile
 
@@ -36,14 +43,24 @@ async def _public_event(db: DbSession, slug: str) -> NativeEvent:
     return event
 
 
-@router.get("/events", response_model=EventListResponse)
-async def browse_events(page: Pagination, db: DbSession) -> EventListResponse:
-    total, events = await EventRepository(db).list_public(limit=page.limit, offset=page.offset)
-    built = Page.build(total=total, items=events, params=page)
-    return EventListResponse(
+@router.get("/events", response_model=VisibleListResponse)
+async def browse_events(
+    page: Pagination,
+    db: DbSession,
+    q: Annotated[str | None, Query()] = None,
+    city: Annotated[str | None, Query()] = None,
+    free: Annotated[bool | None, Query()] = None,
+    online: Annotated[bool | None, Query()] = None,
+) -> VisibleListResponse:
+    """Public browse/search over the visible read model (native + canonical imported)."""
+    total, rows = await VisibleEventRepository(db).list(
+        limit=page.limit, offset=page.offset, q=q, city=city, is_free=free, is_online=online
+    )
+    consumed = page.offset + len(rows)
+    return VisibleListResponse(
         total=total,
-        items=[EventRead.model_validate(e) for e in events],
-        next_offset=built.next_offset,
+        items=[VisibleEventRead.model_validate(r) for r in rows],
+        next_offset=consumed if consumed < total else None,
     )
 
 

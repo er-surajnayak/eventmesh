@@ -17,6 +17,7 @@ from app.core.logging import get_logger
 from app.modules.providers.base import FetchContext, NormalizedEvent
 from app.modules.providers.dedup import dedup_hash
 from app.modules.providers.registry import enabled_providers
+from app.modules.sync.merge import MergeEngine
 from app.modules.sync.models import ImportedEvent, ImportedStatus, SyncRun, SyncStatus
 from app.modules.sync.reports import ProviderHealth, SyncReport
 from app.modules.sync.repository import ImportedEventRepository, SyncRunRepository
@@ -41,8 +42,17 @@ class SyncOrchestrator:
         for provider in enabled_providers():
             healths.append(await self._run_provider(provider, ctx))
 
+        # Merge is fail-soft: a merge error never fails the whole run.
+        merge_stats: dict = {}
+        try:
+            merge_stats = await MergeEngine(self._db).recompute_canonical()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("merge_failed", error=str(exc))
+            merge_stats = {"error": str(exc)}
+
         status = self._overall_status(healths)
         totals = self._aggregate(healths)
+        totals["merge"] = merge_stats
         run.finished_at = datetime.now(UTC)
         run.status = status
         run.totals = totals
