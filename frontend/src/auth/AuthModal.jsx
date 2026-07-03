@@ -63,7 +63,7 @@ const ghostBtn = {
 };
 
 export function AuthModal({ open, onClose }) {
-  const { signInWithOtp, verifyOtp, signInWithGoogle } = useAuth();
+  const { signInWithOtp, verifyOtp, signInWithGoogle, googleEnabled } = useAuth();
   const [step, setStep] = useState('email'); // 'email' | 'code'
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -136,16 +136,20 @@ export function AuthModal({ open, onClose }) {
           No passwords — we&apos;ll email you a one-time code.
         </p>
 
-        <button style={ghostBtn} onClick={google}>
-          <span aria-hidden style={{ fontWeight: 700 }}>G</span>
-          Continue with Google
-        </button>
+        {googleEnabled && (
+          <>
+            <button style={ghostBtn} onClick={google}>
+              <span aria-hidden style={{ fontWeight: 700 }}>G</span>
+              Continue with Google
+            </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
-          <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
-          <span className="mono" style={{ fontSize: 10.5, color: 'var(--fg-3)', letterSpacing: '0.1em' }}>OR</span>
-          <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
-        </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+              <span className="mono" style={{ fontSize: 10.5, color: 'var(--fg-3)', letterSpacing: '0.1em' }}>OR</span>
+              <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+            </div>
+          </>
+        )}
 
         {step === 'email' ? (
           <form onSubmit={sendCode} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

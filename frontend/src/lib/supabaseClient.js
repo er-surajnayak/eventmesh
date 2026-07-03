@@ -25,3 +25,24 @@ export const supabase = createClient(
     },
   },
 );
+
+/**
+ * Which auth providers the Supabase project actually has enabled
+ * (GoTrue /settings). Lets the UI avoid offering a provider that would fail —
+ * e.g. showing "Continue with Google" when Google isn't configured redirects to
+ * a 400 "provider is not enabled" error page. Fails safe to {} (email is always
+ * on), so a transient settings error hides Google rather than showing it broken.
+ */
+export async function fetchEnabledProviders() {
+  if (!isSupabaseConfigured) return {};
+  try {
+    const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+      headers: { apikey: supabaseAnonKey },
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.external || {};
+  } catch {
+    return {};
+  }
+}
