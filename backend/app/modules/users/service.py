@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.exceptions import ConflictError
 from app.core.security import AuthUser
-from app.modules.users.models import Profile
+from app.modules.users.models import Profile, UserRole
 from app.modules.users.repository import UserRepository
 from app.modules.users.schemas import ProfileUpdate
 
@@ -46,4 +46,13 @@ class UserService:
         except IntegrityError as exc:
             await self._repo.rollback()
             raise ConflictError("That handle is already taken.") from exc
+        return profile
+
+    async def become_organizer(self, profile: Profile) -> Profile:
+        """Promote a registered user to organizer. Idempotent."""
+        if not profile.is_organizer:
+            profile.is_organizer = True
+            if profile.role == UserRole.registered:
+                profile.role = UserRole.organizer
+            await self._repo.commit()
         return profile

@@ -47,3 +47,13 @@ def require_roles(*roles: UserRole) -> Callable[[Profile], Awaitable[Profile]]:
 require_moderator = require_roles(UserRole.moderator, UserRole.admin, UserRole.super_admin)
 require_admin = require_roles(UserRole.admin, UserRole.super_admin)
 require_super_admin = require_roles(UserRole.super_admin)
+
+
+async def require_organizer(profile: CurrentProfile) -> Profile:
+    """Allow only users who have completed the 'Become Organizer' step."""
+    if not profile.is_organizer:
+        raise ForbiddenError("You must become an organizer before creating an organization.")
+    return profile
+
+
+RequireOrganizer = Annotated[Profile, Depends(require_organizer)]

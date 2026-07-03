@@ -20,5 +20,7 @@ COPY . .
 
 EXPOSE 8000
 
+# Apply migrations, then serve. Render's free tier has no pre-deploy hook, so
+# migrations run at container start (idempotent; a no-op when already at head).
 # Render provides $PORT; default to 8000 for local runs.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.db.base import Base
 
 # Import model modules so their tables register on Base.metadata.
+from app.modules.organizers import models as _organizers_models  # noqa: F401
 from app.modules.users import models as _users_models  # noqa: F401
 
 config = context.config

@@ -23,3 +23,11 @@ async def update_me(payload: ProfileUpdate, profile: CurrentProfile, db: DbSessi
     service = UserService(UserRepository(db))
     updated = await service.update_profile(profile, payload)
     return ProfileRead.model_validate(updated)
+
+
+@router.post("/me/become-organizer", response_model=ProfileRead)
+async def become_organizer(profile: CurrentProfile, db: DbSession) -> ProfileRead:
+    """Promote the caller to organizer (idempotent)."""
+    service = UserService(UserRepository(db))
+    updated = await service.become_organizer(profile)
+    return ProfileRead.model_validate(updated)
