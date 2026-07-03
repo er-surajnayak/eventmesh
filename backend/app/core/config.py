@@ -70,9 +70,7 @@ class Settings(BaseSettings):
             if "localhost" in self.database_url or "127.0.0.1" in self.database_url:
                 missing.append("DATABASE_URL (must point to the managed database, not localhost)")
             if missing:
-                raise ValueError(
-                    "Missing required production configuration: " + ", ".join(missing)
-                )
+                raise ValueError("Missing required production configuration: " + ", ".join(missing))
         return self
 
     @property
