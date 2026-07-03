@@ -5,9 +5,11 @@ Cross-module access always goes service-to-service, never repository-to-reposito
 
 from sqlalchemy.exc import IntegrityError
 
+from app.core.exceptions import ConflictError
 from app.core.security import AuthUser
 from app.modules.users.models import Profile
 from app.modules.users.repository import UserRepository
+from app.modules.users.schemas import ProfileUpdate
 
 
 class UserService:
@@ -34,3 +36,14 @@ class UserService:
             if winner is None:
                 raise
             return winner
+
+    async def update_profile(self, profile: Profile, data: ProfileUpdate) -> Profile:
+        """Apply a partial profile update; ``handle`` is unique."""
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(profile, field, value)
+        try:
+            await self._repo.commit()
+        except IntegrityError as exc:
+            await self._repo.rollback()
+            raise ConflictError("That handle is already taken.") from exc
+        return profile
