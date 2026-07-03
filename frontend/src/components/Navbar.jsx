@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogoMark } from './UIPrimitives';
+import { AuthControl } from '../auth/AuthControl';
 
 export function Navbar({ onExplore }) {
   const [scrolled, setScrolled] = useState(false);
@@ -37,6 +38,7 @@ export function Navbar({ onExplore }) {
         }}>
           Explore events →
         </button>
+        <AuthControl />
       </div>
     </nav>
   );
