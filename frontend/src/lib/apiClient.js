@@ -36,6 +36,13 @@ export async function apiFetch(path, { method = 'GET', body, headers = {}, auth 
 }
 
 export const api = {
+  // Profile
   getMe: () => apiFetch('/api/v1/users/me'),
   updateMe: (payload) => apiFetch('/api/v1/users/me', { method: 'PATCH', body: payload }),
+  becomeOrganizer: () => apiFetch('/api/v1/users/me/become-organizer', { method: 'POST' }),
+
+  // Organizations
+  listOrganizations: () => apiFetch('/api/v1/organizations'),
+  getOrganization: (slug) => apiFetch(`/api/v1/organizations/${slug}`, { auth: false }),
+  createOrganization: (payload) => apiFetch('/api/v1/organizations', { method: 'POST', body: payload }),
 };
