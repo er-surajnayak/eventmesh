@@ -1,14 +1,13 @@
-"""Provider interface — the seam that hides transport (API/GraphQL/scrape/RSS).
+"""Provider framework — the seam that hides transport (API/GraphQL/scrape/RSS).
 
-Nothing downstream of a provider knows how it fetched data. Every provider
-returns the same ``NormalizedEvent``. Concrete providers (Eventbrite, Meetup,
-Luma) are implemented in Phase 4; this module defines the contract only.
+Concrete providers (Eventbrite/Meetup/Luma) subclass ``BaseProvider`` and only
+implement ``fetch`` + ``normalize``; the ``sync`` template handles validation and
+per-provider metric collection. Everything downstream sees ``NormalizedEvent``.
 """
 
-from __future__ import annotations
-
+from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Literal, Protocol, runtime_checkable
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -21,6 +20,10 @@ class ProviderMeta(BaseModel):
     kind: ProviderKind
     enabled: bool = True
     ratelimit_per_min: int = 30
+
+
+class FetchContext(BaseModel):
+    cities: list[str] = []
 
 
 class NormalizedEvent(BaseModel):
@@ -44,30 +47,44 @@ class NormalizedEvent(BaseModel):
     category: str | None = None
 
 
-class FetchContext(BaseModel):
-    """Inputs for a fetch run (cities, time window, etc.)."""
+class ProviderSyncResult(BaseModel):
+    fetched: int
+    events: list[NormalizedEvent]
+    errors: list[str] = []
 
-    cities: list[str] = []
 
-
-@runtime_checkable
-class EventProvider(Protocol):
-    """The contract every source implements. Transport-agnostic by design."""
+class BaseProvider(ABC):
+    """Template-method base. Subclasses set ``meta`` and implement fetch/normalize."""
 
     meta: ProviderMeta
 
+    @abstractmethod
     async def fetch(self, ctx: FetchContext) -> list[dict]:
-        """Retrieve raw upstream payloads."""
-        ...
+        """Retrieve raw upstream payloads (one dict per event)."""
 
-    def normalize(self, raw: dict) -> NormalizedEvent:
-        """Map one raw payload into the normalized model."""
-        ...
+    @abstractmethod
+    def normalize(self, raw: dict) -> NormalizedEvent | None:
+        """Map one raw payload to a NormalizedEvent, or None if unmappable."""
 
     def validate(self, event: NormalizedEvent) -> bool:
-        """Return True if the normalized event is complete enough to store."""
-        ...
+        """Minimum bar to be storable. Providers may override to be stricter."""
+        return bool(event.title and event.url and event.external_id and event.start_time)
 
-    async def sync(self, ctx: FetchContext) -> list[NormalizedEvent]:
-        """fetch -> normalize -> validate, returning storable events."""
-        ...
+    async def sync(self, ctx: FetchContext) -> ProviderSyncResult:
+        """fetch → normalize → validate, collecting errors (never raising per-item)."""
+        raws = await self.fetch(ctx)
+        events: list[NormalizedEvent] = []
+        errors: list[str] = []
+        for raw in raws:
+            try:
+                event = self.normalize(raw)
+            except Exception as exc:  # noqa: BLE001 - one bad item must not kill the batch
+                errors.append(f"normalize error: {exc}")
+                continue
+            if event is None:
+                continue
+            if self.validate(event):
+                events.append(event)
+            else:
+                errors.append(f"invalid event: {event.external_id or event.url}")
+        return ProviderSyncResult(fetched=len(raws), events=events, errors=errors)

@@ -10,7 +10,7 @@ Wired into protected routes in Phase 1 (Authentication).
 from typing import Annotated
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
@@ -76,3 +76,11 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[AuthUser, Depends(get_current_user)]
+
+
+async def require_admin_token(
+    x_admin_token: Annotated[str | None, Header()] = None,
+) -> None:
+    """Guard admin endpoints (e.g. the GitHub Actions sync trigger)."""
+    if not settings.admin_sync_token or x_admin_token != settings.admin_sync_token:
+        raise UnauthorizedError("Invalid or missing admin token.")

@@ -1,13 +1,21 @@
-"""Registry of enabled providers.
+"""Registry of providers.
 
-Populated in Phase 4. Providers can ship "dark" behind the ``enabled`` flag so
-scaffolded sources (Devfolio, Townscript, Ticketmaster) don't run until ready.
+Providers register here (in their module import) so the sync orchestrator can
+enumerate them without importing each concretely. Empty until 4B+ land.
 """
 
-from app.modules.providers.base import EventProvider
+from app.modules.providers.base import BaseProvider
 
-_PROVIDERS: list[EventProvider] = []
+_PROVIDERS: list[BaseProvider] = []
 
 
-def enabled_providers() -> list[EventProvider]:
+def register(provider: BaseProvider) -> None:
+    _PROVIDERS.append(provider)
+
+
+def enabled_providers() -> list[BaseProvider]:
     return [p for p in _PROVIDERS if p.meta.enabled]
+
+
+def all_providers() -> list[BaseProvider]:
+    return list(_PROVIDERS)
