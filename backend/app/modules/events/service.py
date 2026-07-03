@@ -7,6 +7,7 @@ from app.modules.events.models import NativeEvent
 from app.modules.events.repository import EventRepository
 from app.modules.events.schemas import EventCreate, EventUpdate
 from app.modules.organizers.models import Organization
+from app.shared.slugs import unique_slug
 
 
 class EventService:
@@ -14,7 +15,9 @@ class EventService:
         self._repo = repository
 
     async def create(self, org: Organization, data: EventCreate) -> NativeEvent:
-        event = NativeEvent(organization_id=org.id, **data.model_dump())
+        # Public slug generated once from the title; stable across later edits.
+        slug = await unique_slug(data.title, self._repo.slug_exists)
+        event = NativeEvent(organization_id=org.id, slug=slug, **data.model_dump())
         await self._repo.add(event)
         await self._repo.commit()
         return event

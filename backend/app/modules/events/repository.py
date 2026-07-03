@@ -2,10 +2,10 @@
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.events.models import NativeEvent
+from app.modules.events.models import EventStatus, EventVisibility, NativeEvent
 
 
 class EventRepository:
@@ -21,6 +21,16 @@ class EventRepository:
         result = await self._db.execute(select(NativeEvent).where(NativeEvent.id == event_id))
         return result.scalar_one_or_none()
 
+    async def get_by_slug(self, slug: str) -> NativeEvent | None:
+        result = await self._db.execute(select(NativeEvent).where(NativeEvent.slug == slug))
+        return result.scalar_one_or_none()
+
+    async def slug_exists(self, slug: str) -> bool:
+        result = await self._db.execute(
+            select(func.count()).select_from(NativeEvent).where(NativeEvent.slug == slug)
+        )
+        return (result.scalar() or 0) > 0
+
     async def list_for_org(self, organization_id: uuid.UUID) -> list[NativeEvent]:
         result = await self._db.execute(
             select(NativeEvent)
@@ -28,6 +38,20 @@ class EventRepository:
             .order_by(NativeEvent.created_at.desc())
         )
         return list(result.scalars().all())
+
+    async def list_public(self, *, limit: int, offset: int) -> tuple[int, list[NativeEvent]]:
+        """Published + public events, newest-first, paginated."""
+        base = select(NativeEvent).where(
+            NativeEvent.status == EventStatus.published,
+            NativeEvent.visibility == EventVisibility.public,
+        )
+        total = (
+            await self._db.execute(select(func.count()).select_from(base.subquery()))
+        ).scalar() or 0
+        result = await self._db.execute(
+            base.order_by(NativeEvent.start_time.asc().nulls_last()).limit(limit).offset(offset)
+        )
+        return total, list(result.scalars().all())
 
     async def delete(self, event: NativeEvent) -> None:
         await self._db.delete(event)

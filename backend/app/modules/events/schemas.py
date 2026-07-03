@@ -5,7 +5,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.modules.events.models import EventStatus, EventType, EventVisibility
+from app.modules.events.models import (
+    EventStatus,
+    EventType,
+    EventVisibility,
+    RegistrationStatus,
+)
 
 
 class EventCreate(BaseModel):
@@ -64,6 +69,7 @@ class EventRead(BaseModel):
 
     id: uuid.UUID
     organization_id: uuid.UUID
+    slug: str
     title: str
     description: str | None
     status: EventStatus
@@ -86,5 +92,22 @@ class EventRead(BaseModel):
     registration_closes_at: datetime | None
     cover_image_url: str | None
     refund_policy: str | None
+    published_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class RegistrationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    native_event_id: uuid.UUID
+    user_id: str
+    status: RegistrationStatus
+    created_at: datetime
+
+
+class EventListResponse(BaseModel):
+    total: int
+    items: list[EventRead]
+    next_offset: int | None = None

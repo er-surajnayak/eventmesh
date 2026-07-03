@@ -6,31 +6,16 @@ from app.core.exceptions import ConflictError, NotFoundError
 from app.modules.organizers.models import Organization, OrganizationMember, OrgRole
 from app.modules.organizers.repository import OrganizationRepository
 from app.modules.organizers.schemas import OrganizationCreate
-from app.modules.organizers.slug import slugify
 from app.modules.users.models import Profile
-
-_MAX_SLUG_ATTEMPTS = 50
+from app.shared.slugs import unique_slug
 
 
 class OrganizationService:
     def __init__(self, repository: OrganizationRepository) -> None:
         self._repo = repository
 
-    async def _unique_slug(self, base: str) -> str:
-        root = slugify(base)
-        candidate = root
-        suffix = 2
-        while await self._repo.slug_exists(candidate):
-            candidate = f"{root}-{suffix}"
-            suffix += 1
-            if suffix > _MAX_SLUG_ATTEMPTS:
-                # Extremely unlikely; fall back to a root that includes the count.
-                candidate = f"{root}-{suffix}"
-                break
-        return candidate
-
     async def create_organization(self, owner: Profile, data: OrganizationCreate) -> Organization:
-        slug = await self._unique_slug(data.slug or data.name)
+        slug = await unique_slug(data.slug or data.name, self._repo.slug_exists)
         org = Organization(
             owner_id=owner.id,
             slug=slug,

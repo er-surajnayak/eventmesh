@@ -18,6 +18,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -47,6 +48,12 @@ class EventVisibility(enum.StrEnum):
     unlisted = "unlisted"
 
 
+class RegistrationStatus(enum.StrEnum):
+    registered = "registered"
+    waitlisted = "waitlisted"
+    cancelled = "cancelled"
+
+
 class NativeEvent(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "native_events"
 
@@ -57,6 +64,8 @@ class NativeEvent(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
 
+    # Public, external identifier (UUID id stays the internal key).
+    slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -106,3 +115,28 @@ class NativeEvent(Base, UUIDMixin, TimestampMixin):
 
     # Policies.
     refund_policy: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Set when the event transitions to 'published' (3B lifecycle).
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class EventRegistration(Base, UUIDMixin, TimestampMixin):
+    """A user's registration for a native event (native events only)."""
+
+    __tablename__ = "event_registrations"
+    __table_args__ = (UniqueConstraint("native_event_id", "user_id", name="uq_registration"),)
+
+    native_event_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("native_events.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    status: Mapped[RegistrationStatus] = mapped_column(
+        Enum(RegistrationStatus, name="registration_status"),
+        nullable=False,
+        default=RegistrationStatus.registered,
+    )

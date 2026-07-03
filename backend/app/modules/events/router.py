@@ -10,6 +10,7 @@ import uuid
 from fastapi import APIRouter, status
 
 from app.api.v1.deps import DbSession
+from app.modules.events.lifecycle import EventLifecycleService
 from app.modules.events.repository import EventRepository
 from app.modules.events.schemas import EventCreate, EventRead, EventUpdate
 from app.modules.events.service import EventService
@@ -20,6 +21,10 @@ router = APIRouter(prefix="/organizations/{slug}/events", tags=["events"])
 
 def _service(db: DbSession) -> EventService:
     return EventService(EventRepository(db))
+
+
+def _lifecycle(db: DbSession) -> EventLifecycleService:
+    return EventLifecycleService(EventRepository(db))
 
 
 @router.post("", response_model=EventRead, status_code=status.HTTP_201_CREATED)
@@ -55,3 +60,28 @@ async def delete_event(event_id: uuid.UUID, ctx: OrgMember, db: DbSession) -> No
     service = _service(db)
     event = await service.get_for_org(ctx.organization, event_id)
     await service.delete(event)
+
+
+# ── Lifecycle transitions (dedicated business actions, not status PATCH) ──
+
+_ACTIONS = {
+    "preview": "to_preview",
+    "submit": "submit_for_review",
+    "publish": "publish",
+    "hide": "hide",
+    "unhide": "unhide",
+    "cancel": "cancel",
+    "archive": "archive",
+}
+
+
+def _register_action(action: str, method: str) -> None:
+    @router.post(f"/{{event_id}}/{action}", response_model=EventRead, name=f"event_{action}")
+    async def _handler(event_id: uuid.UUID, ctx: OrgMember, db: DbSession) -> EventRead:
+        event = await _service(db).get_for_org(ctx.organization, event_id)
+        updated = await getattr(_lifecycle(db), method)(event)
+        return EventRead.model_validate(updated)
+
+
+for _action, _method in _ACTIONS.items():
+    _register_action(_action, _method)

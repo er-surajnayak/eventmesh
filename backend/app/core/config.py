@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Admin / sync
     admin_sync_token: str | None = None
 
+    # Events: auto-approve on submit for the MVP (pending_review state retained).
+    auto_approve_events: bool = True
+
     # CORS (comma-separated in env; parsed by the validator below)
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
