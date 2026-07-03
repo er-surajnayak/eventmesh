@@ -45,4 +45,16 @@ export const api = {
   listOrganizations: () => apiFetch('/api/v1/organizations'),
   getOrganization: (slug) => apiFetch(`/api/v1/organizations/${slug}`, { auth: false }),
   createOrganization: (payload) => apiFetch('/api/v1/organizations', { method: 'POST', body: payload }),
+
+  // Organizer events (org-scoped)
+  listOrgEvents: (slug) => apiFetch(`/api/v1/organizations/${slug}/events`),
+  getOrgEvent: (slug, id) => apiFetch(`/api/v1/organizations/${slug}/events/${id}`),
+  createEvent: (slug, payload) =>
+    apiFetch(`/api/v1/organizations/${slug}/events`, { method: 'POST', body: payload }),
+  updateEvent: (slug, id, payload) =>
+    apiFetch(`/api/v1/organizations/${slug}/events/${id}`, { method: 'PATCH', body: payload }),
+  deleteEvent: (slug, id) =>
+    apiFetch(`/api/v1/organizations/${slug}/events/${id}`, { method: 'DELETE' }),
+  eventAction: (slug, id, action) =>
+    apiFetch(`/api/v1/organizations/${slug}/events/${id}/${action}`, { method: 'POST' }),
 };

@@ -183,7 +183,12 @@ function AccountDetails({ onSignOut, onClose }) {
           {actionError && <p style={{ fontSize: 12, color: '#ff6b6b', marginTop: 8 }}>{actionError}</p>}
         </div>
       ) : (
-        <OrganizationsSection />
+        <>
+          <a href="/organizer" style={{ ...primaryBtn, display: 'block', textAlign: 'center', textDecoration: 'none', marginBottom: 14 }}>
+            Organizer dashboard →
+          </a>
+          <OrganizationsSection />
+        </>
       )}
 
       <button
