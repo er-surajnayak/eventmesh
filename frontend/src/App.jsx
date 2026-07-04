@@ -25,7 +25,7 @@ const TWEAK_DEFAULTS = {
 function discoveryHead(filters, items) {
   const parts = [];
   if (filters.q) parts.push(`“${filters.q}”`);
-  if (filters.city && filters.city !== 'All cities') parts.push(`in ${filters.city}`);
+  if (filters.city && filters.city !== 'All Cities') parts.push(`in ${filters.city}`);
   const title = parts.length
     ? `${parts.join(' ')} events · EventMesh`
     : 'EventMesh — Discover events from Eventbrite, Meetup & Luma';

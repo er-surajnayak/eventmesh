@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon } from './UIPrimitives';
-import { CITIES, DATE_FILTERS, PRICE_FILTERS, TYPE_FILTERS, DEFAULT_FILTERS } from '../data/events';
+import { DATE_FILTERS, PRICE_FILTERS, TYPE_FILTERS, DEFAULT_FILTERS } from '../data/events';
 import { SOURCE_OPTIONS } from '../utils/adaptEvent';
+import { CitySelect } from './CitySelect';
 
 const SourceIcon = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -11,24 +12,6 @@ const SourceIcon = (
 
 export function FilterBar({ filters, setFilters, resultCount }) {
   const setK = (k, v) => setFilters(f => ({ ...f, [k]: v }));
-  const [detectedCity, setDetectedCity] = useState(null);
-
-  useEffect(() => {
-    // Basic city detection based on geolocation (simulated or real)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(() => {
-        // In a real app, you'd reverse geocode here.
-        // For now, we'll suggest a city if they're near one.
-        setDetectedCity('San Francisco'); // Mocking detection for now
-      });
-    }
-  }, []);
-
-  const sortedCities = [...CITIES].sort((a, b) => {
-    if (a === detectedCity) return -1;
-    if (b === detectedCity) return 1;
-    return 0;
-  });
 
   const isFiltered = Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k]);
 
@@ -66,13 +49,7 @@ export function FilterBar({ filters, setFilters, resultCount }) {
           )}
         </div>
 
-        <SelectFilter
-          value={filters.city}
-          onChange={v => setK('city', v)}
-          options={sortedCities}
-          icon={Icon.pin}
-          recommendation={detectedCity}
-        />
+        <CitySelect value={filters.city} onChange={v => setK('city', v)} />
 
         <SelectFilter
           value={filters.source}

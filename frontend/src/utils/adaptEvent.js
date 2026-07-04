@@ -3,6 +3,8 @@
 // translation layer. Keeping this isolated means the card components never learn
 // the API's field names, and the backend contract can evolve behind it.
 
+import { cityQueryValue } from '../data/cities';
+
 const PROVIDER_LABELS = {
   eventmesh: 'EventMesh',
   eventbrite: 'Eventbrite',
@@ -83,7 +85,7 @@ export function buildBrowseParams(filters, { limit, offset } = {}) {
   const params = { limit, offset };
   const q = filters.q?.trim();
   if (q) params.q = q;
-  if (filters.city && filters.city !== 'All cities') params.city = filters.city;
+  if (filters.city && filters.city !== 'All Cities') params.city = cityQueryValue(filters.city);
   if (filters.date && filters.date !== 'all') params.date_range = filters.date;
   if (filters.price === 'free') params.free = true;
   else if (filters.price === 'paid') params.free = false;

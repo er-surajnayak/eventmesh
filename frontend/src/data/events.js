@@ -2,10 +2,8 @@
 // was removed in Phase 5B — the feed now comes from GET /api/v1/events.)
 
 export const DEFAULT_FILTERS = {
-  q: '', city: 'All cities', date: 'all', price: 'all', type: 'all', source: 'All sources',
+  q: '', city: 'All Cities', date: 'all', price: 'all', type: 'all', source: 'All sources',
 };
-
-export const CITIES = ['All cities', 'San Francisco', 'London', 'New York', 'Bangalore', 'Berlin'];
 
 export const DATE_FILTERS = [
   { key: 'all', label: 'Anytime' },
