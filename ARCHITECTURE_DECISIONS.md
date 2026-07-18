@@ -49,9 +49,12 @@ future hardening. Admin sync guarded by a separate `X-Admin-Token`.
 
 **ADR-8 · Provider framework hides transport.** `BaseProvider` template
 (`fetch→normalize→validate→sync`, fail-soft per item); every provider returns a
-`NormalizedEvent`. Registry populated at startup (key-gated for APIs). Official
-API preferred (Eventbrite); responsible scraping otherwise (Meetup, Luma) with a
-shared `ScrapeClient` (retry/backoff, rate limiting, realistic headers).
+`NormalizedEvent`. Registry populated at startup. Eventbrite is API-first for
+authorized organization events, with bounded city-page extraction because its
+official API no longer exposes public catalog search; Meetup and Luma also use
+structured HTML extraction. All HTML providers share `ScrapeClient`
+(retry/backoff, rate limiting, realistic headers), and structured data is
+preferred over presentation selectors.
 
 **ADR-9 · Deterministic dedup + canonical selection.** `dedup_hash` = normalized
 title + hour-bucketed start + city. Canonical winner per group = **provider

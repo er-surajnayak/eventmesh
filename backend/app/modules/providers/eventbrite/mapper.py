@@ -26,6 +26,7 @@ def to_normalized(raw: dict) -> NormalizedEvent | None:
     venue = raw.get("venue") or {}
     address = venue.get("address") or {}
     logo = raw.get("logo") or {}
+    category = raw.get("category") or {}
 
     return NormalizedEvent(
         provider="eventbrite",
@@ -42,5 +43,5 @@ def to_normalized(raw: dict) -> NormalizedEvent | None:
         is_online=bool(raw.get("online_event")),
         is_free=bool(raw.get("is_free", False)),
         currency=raw.get("currency"),
-        category=None,
+        category=category.get("short_name") or category.get("name"),
     )

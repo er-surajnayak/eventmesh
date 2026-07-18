@@ -1,10 +1,10 @@
 """Provider registration — called once at application startup.
 
-Providers register only when their credentials/config are present, so a missing
-key simply means that source is skipped (not an error).
+Providers register here once at startup. Credentialed transports degrade to
+their configured fallback or skip only that transport when credentials are
+absent; credential-free discovery providers remain available.
 """
 
-from app.core.config import settings
 from app.core.logging import get_logger
 from app.modules.providers import registry
 from app.modules.providers.eventbrite.provider import EventbriteProvider
@@ -16,8 +16,10 @@ logger = get_logger(__name__)
 
 def register_all() -> None:
     registry._PROVIDERS.clear()
-    if settings.eventbrite_api_key:
-        registry.register(EventbriteProvider())
+    # Eventbrite uses the official API when a token is configured and falls
+    # back to bounded public HTML discovery, so it remains available without
+    # credentials.
+    registry.register(EventbriteProvider())
     # Scrapers need no credentials.
     registry.register(MeetupProvider())
     registry.register(LumaProvider())

@@ -40,8 +40,9 @@ aggregated from external providers, and host/register for native events.
   - 4A: provider framework (`BaseProvider`, `NormalizedEvent`), dedup infra
     (`dedup_hash`, provider priority), `imported_events` + `sync_runs`, fail-soft
     `SyncOrchestrator` with per-provider health + sync reports, admin `/admin/sync`.
-  - 4B: **Eventbrite** connector (official API; pagination, retry/backoff,
-    rate-limit).
+  - 4B: **Eventbrite** hybrid connector (official API for authorized organization
+    events; bounded public city-page extraction via server data → JSON-LD fallback;
+    pagination, retry/backoff, rate-limit, cross-path ID deduplication).
   - 4C: **Meetup** connector (responsible HTML scraping, BeautifulSoup JSON-LD).
   - 4D: **Luma** connector (structured-data first: JSON-LD → `__NEXT_DATA__` →
     Open Graph). Shared `ScrapeClient`.
@@ -63,9 +64,10 @@ aggregated from external providers, and host/register for native events.
 
 ## Known pending / follow-ups
 
-1. **Eventbrite token invalid** — prod sync returns 401; needs a valid Eventbrite
-   **private OAuth token** in `backend/.env` + Render env `EVENTBRITE_API_KEY`.
-   Connector is correct (mocked tests pass); Meetup + Luma work live.
+1. **Eventbrite HTML discovery is operationally fragile** — the official API no
+   longer exposes public city search, so discovery temporarily uses public listing
+   HTML. Keep extraction fixture coverage current and replace it with approved
+   catalog access if Eventbrite makes that available.
 2. **Frontend not yet wired to `GET /events`** — the landing page still shows old
    static/legacy data; the new aggregation feed is served but unconsumed. (A
    natural Phase 5 "Discovery Platform" task.)

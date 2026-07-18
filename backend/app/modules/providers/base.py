@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-ProviderKind = Literal["api", "graphql", "scrape", "rss"]
+ProviderKind = Literal["api", "graphql", "scrape", "hybrid", "rss"]
 
 
 class ProviderMeta(BaseModel):
